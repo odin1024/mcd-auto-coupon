@@ -18,7 +18,7 @@
 
 <p align="center">
   <a href="https://tndsprxmfjfg.cloud.sealos.io">
-    <img src="https://img.shields.io/badge/%F0%9F%9A%80%20%E5%9C%A8%E7%BA%BF%E4%BD%93%E9%AA%8C-%E9%BA%A6%E9%97%A8%E5%88%B8%E5%AE%98%20MCD%20Auto-Coupon-FFC72C?style=for-the-badge" alt="在线体验麦门券官" />
+    <img src="https://img.shields.io/badge/%F0%9F%9A%80%20%E5%9C%A8%E7%BA%BF%E4%BD%93%E9%AA%8C-%E9%BA%A6%E9%97%A8%E5%88%B8%E5%AE%98%20MCD%20Auto%2DCoupon-FFC72C?style=for-the-badge" alt="在线体验麦门券官" />
   </a>
 </p>
 
@@ -26,7 +26,7 @@
 
 ---
 
-## 产品截图
+## 界面截图
 
 <p align="center">
   <img src="./docs/screenshot-dashboard.png" alt="麦门券官看板（真实数据）" width="78%" />
