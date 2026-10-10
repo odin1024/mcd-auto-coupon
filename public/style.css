@@ -89,7 +89,7 @@ html, body {
   padding: 16px; margin-top: 14px;
 }
 .panel-title { font-size: 14px; font-weight: 700; color: var(--gold); letter-spacing: 1px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
-.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
 .panel-wide { grid-column: 1 / -1; }
 
 .big-number { font-size: 34px; font-weight: 900; line-height: 1.1; }
@@ -110,7 +110,7 @@ html, body {
 /* ---------- 券面化列表 ---------- */
 .coupon-list { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
 .coupon-item {
-  display: grid; grid-template-columns: 84px 1fr; border-radius: 14px;
+  display: grid; grid-template-columns: 72px 1fr; border-radius: 14px;
   background: rgba(255,199,44,.05);
   border: 1px solid rgba(255,199,44,.28);
   overflow: hidden; position: relative;
@@ -204,4 +204,6 @@ html, body {
   .grid { grid-template-columns: 2fr 1fr; gap: 14px; }
   .panel-wide { grid-column: 1 / -1; }
   .activity-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  /* 桌面券卡片金额列恢复更宽 */
+  .coupon-item { grid-template-columns: 84px 1fr; }
 }
