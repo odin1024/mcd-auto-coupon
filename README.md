@@ -12,6 +12,20 @@
 
 ---
 
+## 🚀 在线体验
+
+点开即玩，无需安装任何环境（真实麦当劳 MCP 数据实时运行）：
+
+<p align="center">
+  <a href="https://mcd-auto-coupon-i4ibdyebr-jones1009s-projects.vercel.app">
+    <img src="https://img.shields.io/badge/🚀%20在线体验-麦门券官%20MCD%20Auto-Coupon-FFC72C?style=for-the-badge&logo=vercel" alt="在线体验麦门券官" />
+  </a>
+</p>
+
+> 在线版已配置麦当劳 MCP 真实 Token（仅存于云端环境变量，代码零泄漏）。想自己跑一遍完整流程，见下方「快速开始」。
+
+---
+
 ## 产品截图
 
 <p align="center">
