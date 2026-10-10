@@ -1,0 +1,24 @@
+{
+  "_说明": "麦门券官 MOCK 演示数据。结构与麦当劳 MCP 官方返回格式一致（券列表/领券结果/我的券为 Markdown 文本，积分为 JSON），仅用于无 Token 时展示界面与解析逻辑，数值为演示用途，不代表官方实时数据。",
+  "available-coupons": "### 麦麦省优惠券列表： \n- 优惠券标题：11.9元麦乐鸡\n 状态：已领取\n 优惠券图片：\n <img src=\"https://example.com/mock/coupon-nuggets.png\" height=\"auto\" width=\"300\">\n- 优惠券标题：9.9元薯你最甜\n 状态：未领取\n 优惠券图片：\n <img src=\"https://example.com/mock/coupon-fries.png\" height=\"auto\" width=\"300\">\n- 优惠券标题：北非蛋风味麦满分\n 状态：不可领取\n 优惠券图片：\n <img src=\"https://example.com/mock/coupon-muffin.png\" height=\"auto\" width=\"300\">\n- 优惠券标题：任意消费立减3元\n 状态：未领取\n 优惠券图片：\n <img src=\"https://example.com/mock/coupon-cut3.png\" height=\"auto\" width=\"300\">",
+  "auto-bind-coupons": "### 🎉 领券结果 **总计**: 2 张优惠券\n**成功**: 2 张\n**失败**: 0 张\n\n---\n\n#### ✅ 成功领取的优惠券： \n- **9.9元薯你最甜**  \n- couponId：8ED8D8BEBEBDEF26B615682E92EFAC86\n - couponCode：MCDD60T892ST5EV00N1090\n - 图片：<img src=\"https://example.com/mock/coupon-fries.png\" alt=\"9.9元薯你最甜\" height=\"200\" width=\"auto\"> \n- **任意消费立减3元**  \n- couponId：5F1C2A3B4C5D6E7F8A9B0C1D2E3F4A5B6\n - couponCode：MCDD31T111ST5EV00N2222\n - 图片：<img src=\"https://example.com/mock/coupon-cut3.png\" alt=\"任意消费立减3元\" height=\"200\" width=\"auto\">",
+  "query-my-coupons": "# 您的优惠券列表\n\n共 3 张可用优惠券\n\n## 9.9元薯你最甜 - **优惠**: ¥9.9 (用券价格)\n- **有效期**: 2026-10-10 00:00-2026-11-30 23:59\n- **领取时间**: 今日收到\n- **标签**: 到店专用、外送专用\n\n## 任意消费立减3元 - **优惠**: 立减3元\n- **有效期**: 2026-10-10 00:00-2026-10-31 23:59\n- **领取时间**: 今日收到\n- **标签**: 全渠道可用\n\n## 11.9元麦乐鸡 - **优惠**: ¥11.9 (用券价格)\n- **有效期**: 2026-09-20 00:00-2026-11-20 23:59\n- **领取时间**: 上周收到\n- **标签**: 外送专用",
+  "query-my-account": {
+    "success": true,
+    "code": 200,
+    "message": "请求成功",
+    "datetime": "2026-10-10 09:30:00",
+    "data": {
+      "availablePoint": "7592",
+      "accumulativePoint": "141760.94",
+      "currency": "麦当劳积分",
+      "currentMouthExpirePoint": "0",
+      "expiredPoint": "0",
+      "frozenPoint": "30",
+      "lastMouthExpirePoint": "0",
+      "nextMouthExpirePoint": "0",
+      "usedPoint": "115474.14"
+    }
+  },
+  "campaign-calendar": "### 当前时间：2026-10-10 09:30:00 ### 活动列表： #### 10月9日 往期回顾\n- **活动标题**：麦门程序员节预热：1024 神秘代码等你破译\n **活动内容介绍**：👨‍💻 程序员节临近，麦门限时开启代码主题福利，10 月 24 日当天凭神秘代码享专属优惠，先破译先得！ #### 10月10日 今日\n- **活动标题**：麦麦会员日：今日积分双倍到账\n **活动内容介绍**：🎉 每月 10 日会员日，今日下单积分双倍累计，麦麦商城部分商品积分价 8 折，记得先领券再下单！ #### 10月11日 即将开始\n- **活动标题**：秋季限定：热奶茶三兄弟上新\n **活动内容介绍**：🍂 深秋限定热饮上新，焦糖玛奇朵奶茶、海盐芝士奶茶、桂花乌龙奶茶，买二赠一，暖手暖胃。"
+}

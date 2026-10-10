@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="麦门券官——一键领光麦当劳优惠券，券包与积分资产一目了然。基于麦当劳 MCP 真实数据。" />
+  <meta property="og:title" content="麦门券官 · 一键领券省钱管家" />
+  <meta property="og:description" content="一键领光可领优惠券，券包/积分/活动资产看板，省钱成绩单看得见。" />
+  <title>麦门券官 · 一键领券省钱管家</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='10' width='52' height='44' rx='10' fill='%23FFC72C'/%3E%3Ctext x='32' y='46' font-size='34' font-weight='900' text-anchor='middle' fill='%23DA291C' font-family='Arial'%E5%88%B8%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-m">M</span>
+        <span class="brand-name">麦门券官</span>
+        <span class="brand-tag">AUTO-COUPON</span>
+      </div>
+      <span id="mode-badge" class="mode-badge" hidden></span>
+    </header>
+
+    <main>
+      <!-- 领券主操作 -->
+      <section class="claim-hero">
+        <button id="btn-claim" class="btn btn-claim">
+          <span class="claim-icon">券</span>
+          <span class="claim-text">一键领取全部优惠券</span>
+        </button>
+        <p class="claim-sub">系统自动领取麦麦当前所有可领优惠券</p>
+        <div class="savings-banner" id="savings-banner" hidden></div>
+      </section>
+
+      <!-- 领券结果 -->
+      <section id="claim-result" class="panel claim-result" hidden>
+        <div class="panel-title" id="claim-result-title"></div>
+        <div id="claim-result-list" class="claim-list"></div>
+      </section>
+
+      <!-- 数据看板 -->
+      <section class="grid">
+        <div class="panel">
+          <div class="panel-title">我的优惠券</div>
+          <div id="coupon-summary" class="big-number">--</div>
+          <div id="coupon-savings" class="savings-line"></div>
+          <div id="coupon-list" class="coupon-list"></div>
+        </div>
+
+        <div class="panel point-panel">
+          <div class="panel-title">我的积分</div>
+          <div id="point-available" class="big-number point-big">--</div>
+          <div id="point-detail" class="point-detail"></div>
+        </div>
+
+        <div class="panel panel-wide">
+          <div class="panel-title">今日麦门活动</div>
+          <div id="activity-list" class="activity-list"></div>
+        </div>
+      </section>
+
+      <div class="actions">
+        <button id="btn-refresh" class="btn btn-ghost">刷新看板</button>
+      </div>
+    </main>
+
+    <footer class="footer">
+      麦门券官 · 麦当劳程序员创意开发大赛参赛作品（非麦当劳官方产品）<br />
+      一键领券将调用麦当劳 MCP 的 auto-bind-coupons 能力
+    </footer>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
