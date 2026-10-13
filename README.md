@@ -1,6 +1,6 @@
 <div align="center">
 
-<a href="https://tndsprxmfjfg.cloud.sealos.io" target="_blank">
+<a href="https://auto-coupon-328244-12-1506052132.sh.run.tcloudbase.com" target="_blank">
   <img src="./docs/readme-banner.png" alt="麦门券官 · 券资产智能管家" width="100%" />
 </a>
 
@@ -21,7 +21,7 @@
 点开即玩，无需安装任何环境（真实麦当劳 MCP 数据实时运行）：
 
 <p align="center">
-  <a href="https://tndsprxmfjfg.cloud.sealos.io">
+  <a href="https://auto-coupon-328244-12-1506052132.sh.run.tcloudbase.com">
     <img src="https://img.shields.io/badge/%F0%9F%9A%80%20%E5%9C%A8%E7%BA%BF%E4%BD%93%E9%AA%8C-%E9%BA%A6%E9%97%A8%E5%88%B8%E5%AE%98%20MCD%20Auto%2DCoupon-FFC72C?style=for-the-badge" alt="在线体验麦门券官" />
   </a>
 </p>
