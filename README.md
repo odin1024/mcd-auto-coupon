@@ -1,5 +1,9 @@
 <div align="center">
 
+<a href="https://tndsprxmfjfg.cloud.sealos.io" target="_blank">
+  <img src="./docs/readme-banner.png" alt="麦门券官 · 券资产智能管家" width="100%" />
+</a>
+
 # 麦门券官 · MCD Auto-Coupon
 
 **你的券，值多少钱？麦门券官替你算清楚**

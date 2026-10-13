@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" style="background:#04060A">
+  <defs>
+    <linearGradient id="leftShade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#04060A" stop-opacity="0.92"/>
+      <stop offset="0.62" stop-color="#04060A" stop-opacity="0.72"/>
+      <stop offset="1" stop-color="#04060A" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="goldText" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFE066"/>
+      <stop offset="0.5" stop-color="#FFC72C"/>
+      <stop offset="1" stop-color="#D9A200"/>
+    </linearGradient>
+    <linearGradient id="goldStroke" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFD94A"/>
+      <stop offset="1" stop-color="#C89000"/>
+    </linearGradient>
+    <linearGradient id="cardBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="rgba(9,12,18,0.8)"/>
+      <stop offset="1" stop-color="rgba(9,12,18,0.58)"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="9"/>
+      <feOffset dy="6"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.45"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="clipMobile"><rect x="800" y="88" width="236" height="512" rx="30"/></clipPath>
+    <clipPath id="clipAdv"><rect x="636" y="108" width="190" height="143" rx="16"/></clipPath>
+    <clipPath id="clipRep"><rect x="1012" y="430" width="190" height="143" rx="16"/></clipPath>
+  </defs>
+
+  <!-- AI 背景 -->
+  <image href="https://aka.doubaocdn.com/s/P2AH2UCDMV" x="0" y="0" width="1280" height="720" preserveAspectRatio="xMidYMid slice"/>
+  <rect x="0" y="0" width="1280" height="720" fill="url(#leftShade)"/>
+
+  <!-- 左上角红底金拱门 M（双抛物线，外侧腿延伸到底，V 尖收在 2/3 高度） -->
+  <g filter="url(#cardShadow)">
+    <rect x="52" y="52" width="92" height="92" rx="18" fill="#DA291C"/>
+    <rect x="52" y="52" width="92" height="92" rx="18" fill="none" stroke="rgba(255,217,74,0.65)" stroke-width="2"/>
+    <g transform="translate(51.75,48.05) scale(0.925)">
+      <path d="M 10,96 L 10,62 Q 29,-38 48,62"
+            fill="none" stroke="url(#goldStroke)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M 52,62 Q 71,-38 90,62 L 90,96"
+            fill="none" stroke="url(#goldStroke)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <!-- 品牌标题 -->
+  <text x="166" y="106" font-family="'PingFang SC','Microsoft YaHei',sans-serif" font-size="52" font-weight="800" fill="url(#goldText)" letter-spacing="1">麦门券官</text>
+  <text x="169" y="149" font-family="'PingFang SC','Microsoft YaHei',sans-serif" font-size="17" font-weight="600" fill="#B9C2D0" letter-spacing="3">V2 · 券资产智能管家</text>
+
+  <!-- slogan -->
+  <text x="56" y="208" font-family="'PingFang SC','Microsoft YaHei',sans-serif" font-size="24" font-weight="700" fill="#FFFFFF">你手里的券，怎么用最值</text>
+
+  <!-- 卖点胶囊 -->
+  <g font-family="'PingFang SC','Microsoft YaHei',sans-serif" font-size="15" font-weight="600">
+    <rect x="56" y="232" width="134" height="42" rx="21" fill="rgba(8,11,16,0.62)" stroke="rgba(255,199,44,0.55)" stroke-width="1.5"/>
+    <text x="123" y="258" text-anchor="middle" fill="#FFC72C">一键领券</text>
+    <rect x="210" y="232" width="158" height="42" rx="21" fill="rgba(8,11,16,0.62)" stroke="rgba(255,199,44,0.55)" stroke-width="1.5"/>
+    <text x="289" y="258" text-anchor="middle" fill="#FFC72C">官方真实计价</text>
+    <rect x="388" y="232" width="134" height="42" rx="21" fill="rgba(8,11,16,0.62)" stroke="rgba(255,199,44,0.55)" stroke-width="1.5"/>
+    <text x="455" y="258" text-anchor="middle" fill="#FFC72C">省钱战报</text>
+  </g>
+
+  <!-- 左侧三张数据卡（竖排） -->
+  <g font-family="'PingFang SC','Microsoft YaHei',sans-serif" filter="url(#cardShadow)">
+    <!-- 卡 1 -->
+    <rect x="56" y="300" width="600" height="88" rx="16" fill="url(#cardBg)" stroke="rgba(255,199,44,0.5)" stroke-width="1.4"/>
+    <rect x="74" y="320" width="6" height="48" rx="3" fill="#DA291C"/>
+    <text x="98" y="357" font-size="38" font-weight="900" fill="url(#goldText)">¥124</text>
+    <text x="292" y="342" font-size="18" font-weight="700" fill="#FFFFFF">券面值合计</text>
+    <text x="292" y="368" font-size="13" fill="#AEB6C2">可量化券 N 张 · 官方真实接口</text>
+    <!-- 卡 2 -->
+    <rect x="56" y="406" width="600" height="88" rx="16" fill="url(#cardBg)" stroke="rgba(255,199,44,0.5)" stroke-width="1.4"/>
+    <rect x="74" y="426" width="6" height="48" rx="3" fill="#DA291C"/>
+    <text x="98" y="463" font-size="38" font-weight="900" fill="url(#goldText)">¥39.3</text>
+    <text x="292" y="448" font-size="18" font-weight="700" fill="#FFFFFF">临期沉没成本</text>
+    <text x="292" y="474" font-size="13" fill="#AEB6C2">≤3 天到期 · 再不用就白扔</text>
+    <!-- 卡 3 -->
+    <rect x="56" y="512" width="600" height="88" rx="16" fill="url(#cardBg)" stroke="rgba(255,199,44,0.5)" stroke-width="1.4"/>
+    <rect x="74" y="532" width="6" height="48" rx="3" fill="#DA291C"/>
+    <text x="98" y="569" font-size="38" font-weight="900" fill="url(#goldText)">¥15.9</text>
+    <text x="292" y="554" font-size="18" font-weight="700" fill="#FFFFFF">白拿省钱</text>
+    <text x="292" y="580" font-size="13" fill="#AEB6C2">王牌小食拼 · 券后 ¥0</text>
+  </g>
+
+  <text x="58" y="632" font-family="'SF Mono',Consolas,monospace" font-size="13" fill="rgba(255,199,44,0.55)">&lt;/&gt; powered by McDonald's MCP</text>
+
+  <!-- ===== 右侧应用展示 ===== -->
+  <!-- 副图 1：用券决策 -->
+  <g transform="rotate(-4 731 180)" filter="url(#cardShadow)">
+    <rect x="636" y="108" width="190" height="143" rx="16" fill="#0D1117" stroke="rgba(255,217,74,0.75)" stroke-width="2"/>
+    <image href="https://aka.doubaocdn.com/s/EUtzgZio6m" x="638" y="110" width="186" height="139" preserveAspectRatio="xMidYMid slice" clip-path="url(#clipAdv)"/>
+  </g>
+  <rect x="636" y="262" width="96" height="26" rx="13" fill="rgba(8,11,16,0.75)" stroke="rgba(255,199,44,0.4)" stroke-width="1"/>
+  <text x="684" y="280" text-anchor="middle" font-family="'PingFang SC','Microsoft YaHei',sans-serif" font-size="12" font-weight="600" fill="#FFC72C">用券决策</text>
+
+  <!-- 主图：手机端应用 -->
+  <g filter="url(#cardShadow)">
+    <rect x="800" y="88" width="236" height="512" rx="30" fill="#0D1117" stroke="rgba(255,217,74,0.85)" stroke-width="2.5"/>
+    <rect x="811" y="99" width="214" height="490" rx="20" fill="#0D1117"/>
+    <image href="https://aka.doubaocdn.com/s/UAknONUSS3" x="811" y="99" width="214" height="490" preserveAspectRatio="xMidYMid slice" clip-path="url(#clipMobile)"/>
+    <rect x="899" y="74" width="38" height="5" rx="2.5" fill="rgba(255,199,44,0.5)"/>
+  </g>
+
+  <!-- 副图 2：省钱战报 -->
+  <g transform="rotate(3 1107 502)" filter="url(#cardShadow)">
+    <rect x="1012" y="430" width="190" height="143" rx="16" fill="#0D1117" stroke="rgba(255,217,74,0.75)" stroke-width="2"/>
+    <image href="https://aka.doubaocdn.com/s/uxxJK2zaW0" x="1014" y="442" width="186" height="139" preserveAspectRatio="xMidYMid slice" clip-path="url(#clipRep)"/>
+  </g>
+  <rect x="1058" y="584" width="96" height="26" rx="13" fill="rgba(8,11,16,0.75)" stroke="rgba(255,199,44,0.4)" stroke-width="1"/>
+  <text x="1106" y="602" text-anchor="middle" font-family="'PingFang SC','Microsoft YaHei',sans-serif" font-size="12" font-weight="600" fill="#FFC72C">省钱战报</text>
+
+  <!-- 底部网址 -->
+  <text x="56" y="700" font-family="'SF Mono',Consolas,monospace" font-size="14" font-weight="600" fill="#C5CBD4">github.com/odin1024/mcd-auto-coupon</text>
+</svg>
