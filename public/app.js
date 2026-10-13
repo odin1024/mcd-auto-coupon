@@ -268,31 +268,40 @@ function renderAdvisor(d) {
   const val = d.value != null ? `¥${formatNumber(d.value)}` : '--';
   let html = `
     <div class="adv-coupon">
-      <div class="adv-c-title">${escapeHtml(d.coupon.title)}</div>
-      <div class="adv-c-value">这张券价值 <b class="gold-text">${val}</b> · 怎么用最值？</div>
-      ${d.coupon.validDate ? `<div class="c-meta">有效期：${escapeHtml(d.coupon.validDate)}</div>` : ''}
+      <div class="adv-c-head">
+        <div class="adv-c-title">${escapeHtml(d.coupon.title)}</div>
+        <div class="adv-c-value">这张券价值 <b class="gold-text">${val}</b> · 怎么用最值？</div>
+      </div>
+      ${d.coupon.validDate ? `<div class="adv-c-date">📅 ${escapeHtml(d.coupon.validDate)}</div>` : ''}
     </div>
     <div class="adv-list">`;
   (d.candidates || []).forEach((c, i) => {
-    const rankBadge = i === 0 ? '<span class="rank-best">最划算</span>' : '';
+    const isTop = i === 0;
     const payCls = c.payAfterCoupon <= 0 ? 'free' : '';
+    const payText = c.payAfterCoupon <= 0 ? '白拿' : `¥${formatNumber(c.payAfterCoupon)}`;
     html += `
       <div class="adv-item">
-        <div class="adv-rank">${i + 1}</div>
-        <div class="adv-info">
-          <div class="adv-name">${escapeHtml(c.name)} ${rankBadge}<span class="adv-cat">${escapeHtml(c.category || '')}</span></div>
-          <div class="adv-price-line">
+        <div class="adv-rank ${isTop ? 'rank-top' : ''}">${i + 1}</div>
+        <div class="adv-main">
+          <div class="adv-name-row">
+            <span class="adv-name">${escapeHtml(c.name)}</span>
+            ${c.category ? `<span class="adv-cat">${escapeHtml(c.category)}</span>` : ''}
+            ${isTop ? '<span class="rank-best">最划算</span>' : ''}
+          </div>
+          <div class="adv-price-row">
             <span class="adv-old">¥${formatNumber(c.price)}</span>
             <span class="adv-arrow">→</span>
-            <span class="adv-pay ${payCls}">${c.payAfterCoupon <= 0 ? '白拿' : `¥${formatNumber(c.payAfterCoupon)}`}</span>
+            <span class="adv-pay ${payCls}">${payText}</span>
             <span class="adv-saved">省 ¥${formatNumber(c.saved)} · ${c.ratio}%</span>
           </div>
+          <div class="adv-verified">官方 MCP 真实计价</div>
         </div>
-        ${c.verified ? '<div class="adv-verified">✓ 官方 MCP 真实计价</div>' : '<div class="adv-verified warn">计价待验证</div>'}
       </div>`;
   });
   html += `</div>
-    <p class="adv-tip">决策逻辑：你手里的券 → 匹配菜单餐品 → 官方 calculate-price 真实计价。以上为 TOP 3 最划算方案（示例门店 ${escapeHtml(d.storeCode || '')}）。</p>`;
+    <div class="adv-foot">
+      <b>怎么算的：</b>你手里的券 → 匹配门店菜单 → 官方 calculate-price 真实计价，自动排出 TOP 3 最划算方案（示例门店 ${escapeHtml(d.storeCode || '')}）。
+    </div>`;
   advisorBody.innerHTML = html;
 }
 
