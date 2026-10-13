@@ -1,8 +1,8 @@
 'use strict';
 
 /**
- * app.js — 麦门券官前端逻辑（升级版）
- * 券面化渲染 / 到期排序与警示 / 积分高亮 / 活动分组 / 省钱横幅
+ * app.js — 麦门券官 V2.0 前端逻辑
+ * 券资产驾驶舱 / 券面化卡片与到期警示 / 智能用券决策弹层 / 省钱战报长图
  */
 
 const $ = (sel) => document.querySelector(sel);
@@ -61,6 +61,44 @@ function parseMonthDay(label) {
   return { month: Number(m[1]), day: Number(m[2]) };
 }
 
+/* ---------- 驾驶舱 ---------- */
+async function loadPortfolio() {
+  try {
+    const res = await fetch('/api/portfolio', { cache: 'no-store' });
+    const d = await res.json();
+    if (!d.ok) throw new Error(d.error || '服务异常');
+    renderPortfolio(d);
+  } catch (err) {
+    $('#dash-face-value').textContent = '--';
+    $('#dash-point-value').textContent = '--';
+  }
+}
+
+function renderPortfolio(d) {
+  const fmt = formatNumber;
+  $('#dash-face-value').textContent = `¥${fmt(d.coupons ? d.coupons.faceTotal : 0)}`;
+  $('#dash-face-note').textContent = `可量化券 ${d.coupons ? d.coupons.valuedCount : 0} 张 · 共 ${d.coupons ? d.coupons.count : 0} 张`;
+
+  const pt = d.point || {};
+  $('#dash-point-value').textContent = fmt(pt.available);
+  $('#dash-point-note').innerHTML = pt.expireThisMonth > 0
+    ? `本月到期 <span class="dash-danger">${fmt(pt.expireThisMonth)}</span>`
+    : '本月无到期积分';
+
+  const ex = d.expiring || {};
+  if (ex.count > 0 && ex.loss > 0) {
+    $('#dash-loss-value').textContent = `¥${fmt(ex.loss)}`;
+    $('#dash-loss-note').textContent = `${ex.count} 张券 ≤3 天到期，再不用就白扔`;
+  } else {
+    $('#dash-loss-value').textContent = '¥0';
+    $('#dash-loss-note').textContent = '暂无临近到期，安心';
+    $('#dash-loss').classList.add('dash-ok');
+  }
+
+  const sd = d.savings;
+  $('#dash-save-value').textContent = sd && sd.total > 0 ? `¥${fmt(sd.total)}` : '¥0';
+}
+
 /* ---------- 看板 ---------- */
 async function loadDashboard(showLoading = false) {
   try {
@@ -68,9 +106,11 @@ async function loadDashboard(showLoading = false) {
     const d = await res.json();
     if (!d.ok) throw new Error(d.error || '服务异常');
     renderDashboard(d);
+    return d;
   } catch (err) {
     $('#coupon-summary').textContent = '加载失败';
     $('#coupon-savings').textContent = err.message;
+    return null;
   }
 }
 
@@ -98,14 +138,13 @@ function renderDashboard(d) {
     listEl.innerHTML = '<div class="empty-tip">还没有可用优惠券，点上方按钮一键领取</div>';
   } else {
     const sorted = coupons.list
-      .map((c) => ({ c, expiry: parseExpiry(c.validDate), left: daysLeft(parseExpiry(c.validDate)) }))
+      .map((c, idx) => ({ c, idx, expiry: parseExpiry(c.validDate), left: daysLeft(parseExpiry(c.validDate)) }))
       .sort((a, b) => {
-        // 过期置底，临近到期置顶，其余按到期日升序
         const ra = a.left == null ? 99 : a.left < 0 ? 98 : a.left;
         const rb = b.left == null ? 99 : b.left < 0 ? 98 : b.left;
         return ra - rb;
       });
-    sorted.forEach(({ c, left }) => {
+    sorted.forEach(({ c, idx, left }) => {
       const stateCls = left == null ? '' : left < 0 ? 'state-expired' : left <= 3 ? 'state-expiring' : '';
       const flag = left == null ? '' : left < 0 ? '已过期' : left === 0 ? '今天到期' : left <= 3 ? `${left} 天后到期` : '';
       const price = extractPrice(c.title, c.benefit);
@@ -122,8 +161,13 @@ function renderDashboard(d) {
           ${flag ? `<div class="expire-flag">${flag}</div>` : ''}
           ${c.validDate ? `<div class="c-meta">有效期：${escapeHtml(c.validDate)}</div>` : ''}
           ${c.tags ? `<div class="c-tags">${c.tags.split(/[、,，]/).filter(Boolean).slice(0, 3).map((t) => `<span class="c-tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+          <div class="c-adv"><button class="adv-btn" data-idx="${idx}">✨ 怎么用最值</button></div>
         </div>`;
       listEl.appendChild(item);
+    });
+    // 事件委托：用券决策
+    listEl.querySelectorAll('.adv-btn').forEach((btn) => {
+      btn.addEventListener('click', () => openAdvisor(Number(btn.dataset.idx)));
     });
   }
 
@@ -152,7 +196,7 @@ function renderDashboard(d) {
     const now = today();
     const ranked = activities
       .map((a) => {
-        let rank = 0; // 0=今日 1=未来 2=往期
+        let rank = 0;
         const st = a.status || '';
         if (st.includes('今日') || st.includes('今天')) rank = 0;
         else {
@@ -189,6 +233,144 @@ function renderDashboard(d) {
   }
 }
 
+/* ---------- 智能用券决策 ---------- */
+const advisorModal = $('#advisor-modal');
+const advisorBody = $('#advisor-body');
+
+async function openAdvisor(couponIndex) {
+  advisorBody.innerHTML = '<div class="empty-tip">正在查询菜单与官方计价…</div>';
+  advisorModal.hidden = false;
+  document.body.classList.add('modal-open');
+  try {
+    const res = await fetch('/api/advisor', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ couponIndex }),
+    });
+    const d = await res.json();
+    if (!d.ok) throw new Error(d.error || '查询失败');
+    renderAdvisor(d);
+  } catch (err) {
+    advisorBody.innerHTML = `<div class="empty-tip">查询失败：${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function renderAdvisor(d) {
+  if (!d.usable) {
+    advisorBody.innerHTML = `
+      <div class="adv-coupon">
+        <div class="adv-c-title">${escapeHtml(d.coupon.title)}</div>
+        ${d.coupon.benefit ? `<div class="c-meta">${escapeHtml(d.coupon.benefit)}</div>` : ''}
+      </div>
+      <div class="empty-tip">${escapeHtml(d.reason)}</div>`;
+    return;
+  }
+  const val = d.value != null ? `¥${formatNumber(d.value)}` : '--';
+  let html = `
+    <div class="adv-coupon">
+      <div class="adv-c-title">${escapeHtml(d.coupon.title)}</div>
+      <div class="adv-c-value">这张券价值 <b class="gold-text">${val}</b> · 怎么用最值？</div>
+      ${d.coupon.validDate ? `<div class="c-meta">有效期：${escapeHtml(d.coupon.validDate)}</div>` : ''}
+    </div>
+    <div class="adv-list">`;
+  (d.candidates || []).forEach((c, i) => {
+    const rankBadge = i === 0 ? '<span class="rank-best">最划算</span>' : '';
+    const payCls = c.payAfterCoupon <= 0 ? 'free' : '';
+    html += `
+      <div class="adv-item">
+        <div class="adv-rank">${i + 1}</div>
+        <div class="adv-info">
+          <div class="adv-name">${escapeHtml(c.name)} ${rankBadge}<span class="adv-cat">${escapeHtml(c.category || '')}</span></div>
+          <div class="adv-price-line">
+            <span class="adv-old">¥${formatNumber(c.price)}</span>
+            <span class="adv-arrow">→</span>
+            <span class="adv-pay ${payCls}">${c.payAfterCoupon <= 0 ? '白拿' : `¥${formatNumber(c.payAfterCoupon)}`}</span>
+            <span class="adv-saved">省 ¥${formatNumber(c.saved)} · ${c.ratio}%</span>
+          </div>
+        </div>
+        ${c.verified ? '<div class="adv-verified">✓ 官方 MCP 真实计价</div>' : '<div class="adv-verified warn">计价待验证</div>'}
+      </div>`;
+  });
+  html += `</div>
+    <p class="adv-tip">决策逻辑：你手里的券 → 匹配菜单餐品 → 官方 calculate-price 真实计价。以上为 TOP 3 最划算方案（示例门店 ${escapeHtml(d.storeCode || '')}）。</p>`;
+  advisorBody.innerHTML = html;
+}
+
+/* ---------- 省钱战报 ---------- */
+const reportModal = $('#report-modal');
+const reportCanvas = $('#report-canvas');
+
+async function openReport() {
+  reportModal.hidden = false;
+  document.body.classList.add('modal-open');
+  const wrap = document.getElementById('report-canvas-wrap');
+  if (wrap) wrap.innerHTML = '<div class="empty-tip">正在生成战报…</div>';
+  try {
+    const [dashboard, portfolio] = await Promise.all([
+      fetch('/api/dashboard', { cache: 'no-store' }).then((r) => r.json()),
+      fetch('/api/portfolio', { cache: 'no-store' }).then((r) => r.json()),
+    ]);
+    const data = buildReportData(dashboard, portfolio);
+    renderReport(data);
+  } catch (err) {
+    if (wrap) wrap.innerHTML = `<div class="empty-tip">生成失败：${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function buildReportData(dashboard, portfolio) {
+  const coupons = (dashboard.coupons && dashboard.coupons.list) || [];
+  const pt = portfolio.point || {};
+  const now = new Date();
+  const dateLabel = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`;
+  return {
+    faceTotal: portfolio.coupons ? portfolio.coupons.faceTotal : 0,
+    valuedCount: portfolio.coupons ? portfolio.coupons.valuedCount : 0,
+    saveTotal: dashboard.savings ? dashboard.savings.total : 0,
+    saveCount: dashboard.savings ? dashboard.savings.count : 0,
+    pointAvailable: pt.available,
+    pointExpire: pt.expireThisMonth || 0,
+    expiringLoss: portfolio.expiring ? portfolio.expiring.loss : 0,
+    expiringCount: portfolio.expiring ? portfolio.expiring.count : 0,
+    coupons: coupons.map((c) => {
+      const val = extractPrice(c.title, c.benefit);
+      return {
+        title: c.title || '',
+        benefit: c.benefit || '',
+        validDate: c.validDate || '',
+        value: val,
+      };
+    }),
+    activities: (dashboard.activities || []).slice(0, 3).map((a) => ({ dateLabel: a.dateLabel, title: a.title })),
+    mock: !!dashboard.mock,
+    dateLabel,
+  };
+}
+
+function renderReport(data) {
+  const wrap = document.getElementById('report-canvas-wrap');
+  if (wrap) wrap.innerHTML = '';
+  reportCanvas.hidden = false;
+  const { height } = McdReport.drawReport(reportCanvas, data);
+  reportCanvas.style.aspectRatio = `${McdReport.W} / ${height}`;
+}
+
+$('#btn-report').addEventListener('click', openReport);
+
+$('#report-download').addEventListener('click', () => {
+  try {
+    const url = reportCanvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    const d = new Date();
+    a.download = `麦门省钱战报-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}.png`;
+    a.href = url;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch (err) {
+    alert('保存失败，请长按图片保存');
+  }
+});
+
 /* ---------- 一键领券 ---------- */
 btnClaim.addEventListener('click', async () => {
   btnClaim.disabled = true;
@@ -203,6 +385,7 @@ btnClaim.addEventListener('click', async () => {
     if (!d.ok) throw new Error(d.error || '领券失败');
     renderClaim(d);
     await loadDashboard();
+    await loadPortfolio();
   } catch (err) {
     claimResult.hidden = false;
     claimResultTitle.textContent = '领券失败';
@@ -245,8 +428,25 @@ function renderClaim(d) {
   claimResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+/* ---------- 弹层关闭 ---------- */
+function closeModal(modal) {
+  modal.hidden = true;
+  document.body.classList.remove('modal-open');
+}
+$('#advisor-close').addEventListener('click', () => closeModal(advisorModal));
+$('#report-close').addEventListener('click', () => closeModal(reportModal));
+document.querySelectorAll('.modal-mask').forEach((mask) => {
+  mask.addEventListener('click', () => {
+    closeModal(advisorModal);
+    closeModal(reportModal);
+  });
+});
+
 /* ---------- 刷新 ---------- */
-$('#btn-refresh').addEventListener('click', () => loadDashboard(true));
+$('#btn-refresh').addEventListener('click', () => {
+  loadDashboard(true);
+  loadPortfolio();
+});
 
 /* ---------- 工具 ---------- */
 function escapeHtml(s) {
@@ -260,9 +460,10 @@ function escapeHtml(s) {
 function formatNumber(v) {
   if (v == null || v === '') return '--';
   const n = Number(v);
-  if (!Number.isFinite(n)) return String(v);
+  if (!Number.isFinite(n)) return String(n);
   return n.toLocaleString('zh-CN', { maximumFractionDigits: 2 });
 }
 
 /* ---------- 启动 ---------- */
 loadDashboard();
+loadPortfolio();

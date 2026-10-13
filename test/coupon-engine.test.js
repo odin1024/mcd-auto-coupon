@@ -9,6 +9,9 @@ const {
   parseMyCoupons,
   parseCampaignCalendar,
   estimateSavings,
+  extractCouponValue,
+  couponExpiry,
+  buildPortfolio,
   buildDashboard,
 } = require('../src/coupon-engine');
 
@@ -148,6 +151,73 @@ test('campaign-calendar：官方格式解析', () => {
   assert.equal(acts[0].status, '今日');
   assert.ok(acts[0].title.includes('会员日'));
   assert.equal(acts[1].status, '即将开始');
+});
+
+/* ---------------- 券价值提取（V2.0） ---------------- */
+
+test('extractCouponValue：立减券 → 价值=立减金额', () => {
+  assert.equal(extractCouponValue({ title: '任意消费立减3元', benefit: '立减3元' }), 3);
+  assert.equal(extractCouponValue({ title: '大堡口福省5元', benefit: '省5元' }), 5);
+  assert.equal(extractCouponValue({ title: '优惠10元券', benefit: '优惠10元' }), 10);
+});
+
+test('extractCouponValue：用券价券 → 价值=面值', () => {
+  assert.equal(extractCouponValue({ title: '9.9元薯你最甜', benefit: '¥9.9 (用券价格)' }), 9.9);
+  assert.equal(extractCouponValue({ title: '11.9元麦乐鸡', benefit: '¥11.9 (用券价格)' }), 11.9);
+});
+
+test('extractCouponValue：无法量化 → null（不虚报）', () => {
+  assert.equal(extractCouponValue({ title: '巨无霸半价券', benefit: '半价' }), null);
+  assert.equal(extractCouponValue({ title: '免费薯条券', benefit: '' }), null);
+  assert.equal(extractCouponValue(null), null);
+});
+
+/* ---------------- 到期与沉默成本（V2.0） ---------------- */
+
+test('couponExpiry：从有效期区间取最后到期日并算剩余天数', () => {
+  const { expiry, leftDays } = couponExpiry(
+    { validDate: '2026-10-10 00:00-2026-10-15 23:59' },
+    new Date(2026, 9, 13)
+  );
+  assert.equal(expiry.getFullYear(), 2026);
+  assert.equal(expiry.getMonth(), 9);
+  assert.equal(expiry.getDate(), 15);
+  assert.equal(leftDays, 2);
+});
+
+test('couponExpiry：无有效期 → null', () => {
+  assert.deepEqual(couponExpiry({ title: 'x' }), { expiry: null, leftDays: null });
+  assert.deepEqual(couponExpiry(null), { expiry: null, leftDays: null });
+});
+
+test('buildPortfolio：券面值合计 / 即将过期沉默成本 / 已过期损失', () => {
+  const myCoupons = {
+    count: 3,
+    coupons: [
+      { title: '9.9元薯你最甜', benefit: '¥9.9 (用券价格)', validDate: '2026-10-10 00:00-2026-10-15 23:59' }, // 2天后到期 → 沉默成本
+      { title: '任意消费立减3元', benefit: '立减3元', validDate: '2026-10-01 00:00-2026-10-31 23:59' },       // 未临期
+      { title: '巨无霸半价券', benefit: '半价', validDate: '2026-09-01 00:00-2026-09-30 23:59' },            // 已过期但不可量化
+    ],
+  };
+  const now = new Date(2026, 9, 13);
+  const p = buildPortfolio(myCoupons, null, now);
+  assert.equal(p.coupons.count, 3);
+  assert.equal(p.coupons.valuedCount, 2);
+  assert.equal(p.coupons.faceTotal, 12.9);
+  assert.equal(p.expiring.count, 1);
+  assert.equal(p.expiring.loss, 9.9);
+  assert.equal(p.expired.count, 0); // 半价券不可量化 → 不计损失
+});
+
+test('buildPortfolio：积分与到期积分提取', () => {
+  const account = {
+    availablePoint: '7592', accumulativePoint: '141760.94',
+    frozenPoint: '30', currentMouthExpirePoint: '1200', currency: '麦当劳积分',
+  };
+  const p = buildPortfolio({ count: 0, coupons: [] }, account);
+  assert.equal(p.point.available, 7592);
+  assert.equal(p.point.expireThisMonth, 1200);
+  assert.equal(p.coupons.faceTotal, 0);
 });
 
 /* ---------------- 看板聚合 ---------------- */

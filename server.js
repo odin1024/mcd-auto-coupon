@@ -27,7 +27,14 @@ const {
   parseCampaignCalendar,
   buildDashboard,
   estimateSavings,
+  buildPortfolio,
+  extractCouponValue,
 } = require('./src/coupon-engine');
+const {
+  parseMeals,
+  buildAdvisor,
+  parsePriceResult,
+} = require('./src/advisor-engine');
 
 const PORT = Number(process.env.PORT || 3001);
 const ROOT = __dirname;
@@ -36,14 +43,48 @@ const PUBLIC_DIR = path.join(ROOT, 'public');
 const COUPON_TTL_MS = 60 * 1000; // 我的券缓存 1 分钟
 const ACCOUNT_TTL_MS = 60 * 1000; // 积分缓存 1 分钟
 const CAMPAIGN_TTL_MS = 30 * 60 * 1000; // 活动缓存 30 分钟
+const MENU_TTL_MS = 30 * 60 * 1000; // 菜单缓存 30 分钟（菜单变化慢）
+
+const DEFAULT_STORE = '1950801'; // 用券决策默认门店：麦当劳北京学院国际大厦餐厅（演示/真实均可查询）
 
 const MOCK_DATA = loadJson(path.join(ROOT, 'examples', 'mock-data.json'));
 const client = new McpClient({ mockData: MOCK_DATA });
+
+// Mock 模式下注入函数型计价：按 items × mock 菜单价格表动态计算（单位：分）
+client.mockData['calculate-price'] = function mockCalculatePrice(args) {
+  const items = Array.isArray(args && args.items) ? args.items : [];
+  const rawMenu = typeof this.mockData['query-meals'] === 'string'
+    ? this.mockData['query-meals']
+    : JSON.stringify(this.mockData['query-meals']);
+  const menuRes = parseMeals(rawMenu);
+  const priceMap = {};
+  for (const m of menuRes) priceMap[m.code] = Math.round(m.currentPrice * 100);
+  let total = 0;
+  const list = [];
+  for (const it of items) {
+    const code = it && (it.productCode || it.code);
+    const qty = Number(it && it.quantity) || 1;
+    const unit = priceMap[String(code)] || 0;
+    const sub = unit * qty;
+    total += sub;
+    list.push({ productCode: String(code), price: unit, quantity: qty, name: String(code) });
+  }
+  return {
+    success: true, code: 200, message: '请求成功', datetime: new Date().toISOString(),
+    data: {
+      productOriginalPrice: total, productPrice: total,
+      deliveryOriginalPrice: 0, deliveryPrice: 0,
+      packingOriginalPrice: 0, packingPrice: 0, tablewarePrice: 0,
+      originalPrice: total, discount: 0, price: total, productList: list,
+    },
+  };
+};
 
 const cache = {
   coupons: { data: null, at: 0 },
   account: { data: null, at: 0 },
   campaign: { data: null, at: 0 },
+  menu: { data: null, at: 0 },
 };
 
 function loadJson(file) {
@@ -83,6 +124,41 @@ async function getActivities() {
     const res = await client.callTool('campaign-calendar');
     return parseCampaignCalendar(res.data);
   });
+}
+
+/** 拉取默认门店菜单（到店自取），30 分钟缓存 */
+async function getMenu() {
+  return cached('menu', MENU_TTL_MS, async () => {
+    const res = await client.callTool('query-meals', {
+      storeCode: DEFAULT_STORE,
+      orderType: 1,
+      beType: 1,
+    });
+    return parseMeals(res.data);
+  });
+}
+
+/** 对候选餐品逐项官方真实计价，返回 [{code, name, price(元), verified:boolean}] */
+async function verifyPrices(candidates) {
+  const items = candidates.map((c) => ({ productCode: c.code, quantity: 1 }));
+  if (items.length === 0) return [];
+  const res = await client.callTool('calculate-price', {
+    storeCode: DEFAULT_STORE,
+    orderType: 1,
+    beType: 1,
+    items,
+  });
+  const parsed = parsePriceResult(res.data);
+  if (!parsed) {
+    // 计价解析失败：退回候选的菜单价（标 verified:false）
+    return candidates.map((c) => ({ code: c.code, name: c.name, price: c.price, verified: false }));
+  }
+  return candidates.map((c) => ({
+    code: c.code,
+    name: c.name,
+    price: Math.round(c.price * 100) / 100,
+    verified: true,
+  }));
 }
 
 function readJsonBody(req) {
@@ -160,6 +236,69 @@ async function handleDashboard(req, res) {
   }
 }
 
+/** GET /api/portfolio — 券资产金额化驾驶舱 */
+async function handlePortfolio(req, res) {
+  try {
+    const [myCoupons, account] = await Promise.all([
+      getMyCoupons().catch(() => ({ count: 0, coupons: [] })),
+      getAccount().catch(() => null),
+    ]);
+    const portfolio = buildPortfolio(myCoupons, account);
+    sendJson(res, 200, { ok: true, mock: client.isMock, ...portfolio });
+  } catch (err) {
+    console.error('[mcd-auto-coupon] /api/portfolio 失败:', err.message);
+    sendJson(res, 502, { ok: false, error: err.message });
+  }
+}
+
+/** POST /api/advisor — 智能用券决策（券→餐反向匹配，TOP N 真实计价） */
+async function handleAdvisor(req, res) {
+  try {
+    const body = await readJsonBody(req);
+    const couponIndex = Number(body.couponIndex);
+    if (!Number.isInteger(couponIndex) || couponIndex < 0) {
+      return sendJson(res, 400, { ok: false, error: '参数 couponIndex 必须是 >=0 的整数' });
+    }
+    const myCoupons = await getMyCoupons().catch(() => ({ count: 0, coupons: [] }));
+    const coupon = (myCoupons.coupons || [])[couponIndex];
+    if (!coupon) {
+      return sendJson(res, 404, { ok: false, error: '找不到这张优惠券' });
+    }
+    const value = extractCouponValue(coupon);
+    const meals = await getMenu().catch(() => []);
+    const advisor = buildAdvisor(value, meals);
+    // 对 TOP N 候选官方真实计价
+    let candidates = advisor.candidates;
+    if (advisor.usable && candidates.length > 0) {
+      candidates = await verifyPrices(candidates).catch(() => candidates.map((c) => ({
+        code: c.code, name: c.name, price: c.price, verified: false,
+      })));
+      // 把计价结果合并回候选
+      const priceMap = {};
+      for (const p of candidates) priceMap[p.code] = { price: p.price, verified: p.verified };
+      candidates = advisor.candidates.map((c) => ({
+        ...c,
+        verifiedPrice: priceMap[c.code] ? priceMap[c.code].price : null,
+        verified: priceMap[c.code] ? priceMap[c.code].verified : false,
+      }));
+    }
+    const expiry = myCoupons.coupons && coupon.validDate ? coupon.validDate : '';
+    sendJson(res, 200, {
+      ok: true,
+      mock: client.isMock,
+      coupon: { title: coupon.title, benefit: coupon.benefit || '', validDate: expiry },
+      value,
+      usable: advisor.usable,
+      reason: advisor.reason || '',
+      storeCode: DEFAULT_STORE,
+      candidates,
+    });
+  } catch (err) {
+    console.error('[mcd-auto-coupon] /api/advisor 失败:', err.message);
+    sendJson(res, 502, { ok: false, error: err.message });
+  }
+}
+
 async function handleClaim(req, res) {
   try {
     // 1. 领券前记录当前券数（作为净增基准）
@@ -215,13 +354,19 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, {
         ok: true,
         app: 'mcd-auto-coupon',
-        version: '1.0.0',
+        version: '2.0.0',
         mock: client.isMock,
-        tools: ['available-coupons', 'auto-bind-coupons', 'query-my-coupons', 'query-my-account', 'campaign-calendar'],
+        tools: ['available-coupons', 'auto-bind-coupons', 'query-my-coupons', 'query-my-account', 'campaign-calendar', 'query-meals', 'calculate-price'],
       });
     }
     if (req.method === 'GET' && pathname === '/api/dashboard') {
       return await handleDashboard(req, res);
+    }
+    if (req.method === 'GET' && pathname === '/api/portfolio') {
+      return await handlePortfolio(req, res);
+    }
+    if (req.method === 'POST' && pathname === '/api/advisor') {
+      return await handleAdvisor(req, res);
     }
     if (req.method === 'POST' && pathname === '/api/claim') {
       return await handleClaim(req, res);
@@ -239,9 +384,10 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   const mode = client.isMock ? 'MOCK（模拟数据，未配置 Token）' : 'REAL（真实麦当劳 MCP）';
   console.log('========================================');
-  console.log('  麦门券官 mcd-auto-coupon v1.0.0');
+  console.log('  麦门券官 mcd-auto-coupon v2.0.0');
   console.log(`  运行模式: ${mode}`);
   console.log(`  打开浏览器: http://localhost:${PORT}`);
   console.log('  配置真实 Token: export MCD_MCP_TOKEN=<你的Token>');
+  console.log('  V2.0 新增: 券资产驾驶舱 / 智能用券决策 / 省钱战报');
   console.log('========================================');
 });

@@ -1,6 +1,6 @@
 {
   "name": "mcd-auto-coupon",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "麦门券官 —— 基于麦当劳 MCP 的一键领券省钱管家：自动领取麦麦省全部可领优惠券，券资产/积分/活动日历一屏看板，省钱成绩单看得见。",
   "main": "server.js",
   "type": "commonjs",

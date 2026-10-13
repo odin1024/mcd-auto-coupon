@@ -12,12 +12,40 @@
       "availablePoint": "7592",
       "accumulativePoint": "141760.94",
       "currency": "麦当劳积分",
-      "currentMouthExpirePoint": "0",
+      "currentMouthExpirePoint": "1200",
       "expiredPoint": "0",
       "frozenPoint": "30",
       "lastMouthExpirePoint": "0",
-      "nextMouthExpirePoint": "0",
+      "nextMouthExpirePoint": "800",
       "usedPoint": "115474.14"
+    }
+  },
+  "query-meals": {
+    "success": true,
+    "code": 200,
+    "message": "请求成功",
+    "datetime": "2026-10-13 10:00:00",
+    "data": {
+      "categories": [
+        { "name": "超值套餐", "meals": [{ "code": "3001", "tags": [] }, { "code": "3002", "tags": [] }] },
+        { "name": "汉堡", "meals": [{ "code": "1100", "tags": [] }, { "code": "1120", "tags": [] }, { "code": "1440", "tags": [] }, { "code": "1450", "tags": [] }, { "code": "1600", "tags": [] }] },
+        { "name": "小食", "meals": [{ "code": "1401", "tags": [] }, { "code": "1700", "tags": [] }, { "code": "1500", "tags": [] }] },
+        { "name": "饮料", "meals": [{ "code": "2430", "tags": [] }, { "code": "2500", "tags": [] }] }
+      ],
+      "meals": {
+        "1100": { "name": "巨无霸", "image": "https://menu-img.mcd.cn/pcm/prod/menu/20260309/product/MS_1100_320.png", "currentPrice": "26.5", "originalPrice": "26.5", "canWithOrder": false },
+        "1120": { "name": "双层吉士汉堡", "image": "https://menu-img.mcd.cn/pcm/prod/menu/20260309/product/MS_1120_320.png", "currentPrice": "22.5", "originalPrice": "22.5", "canWithOrder": false },
+        "1440": { "name": "麦辣鸡腿汉堡", "image": "https://menu-img.mcd.cn/pcm/prod/menu/20260309/product/MS_1440_320.png", "currentPrice": "22.5", "originalPrice": "22.5", "canWithOrder": false },
+        "1450": { "name": "麦香鸡", "image": "https://menu-img.mcd.cn/pcm/prod/menu/20260309/product/MS_1450_320.png", "currentPrice": "17", "originalPrice": "17", "canWithOrder": false },
+        "1600": { "name": "麦香鱼", "image": "https://menu-img.mcd.cn/pcm/prod/menu/20260309/product/MS_1600_320.png", "currentPrice": "23", "originalPrice": "23", "canWithOrder": false },
+        "1401": { "name": "麦乐鸡(5块)", "image": "https://menu-img.mcd.cn/pcm/prod/menu/20260309/product/MS_1401_320.png", "currentPrice": "15", "originalPrice": "15", "canWithOrder": false },
+        "1700": { "name": "麦辣鸡翅", "image": "https://menu-img.mcd.cn/pcm/prod/menu/20260309/product/MS_1700_320.png", "currentPrice": "15", "originalPrice": "15", "canWithOrder": false },
+        "1500": { "name": "中薯条", "image": "https://menu-img.mcd.cn/pcm/prod/menu/20260309/product/MS_1500_320.png", "currentPrice": "12.5", "originalPrice": "12.5", "canWithOrder": false },
+        "2430": { "name": "【美汁源】黄金橙橙", "image": "https://menu-img.mcd.cn/pcm/prod/menu/20260309/product/MS_2430_320.png", "currentPrice": "13", "originalPrice": "13", "canWithOrder": false },
+        "2500": { "name": "可口可乐(中杯)", "image": "https://menu-img.mcd.cn/pcm/prod/menu/20260309/product/MS_2500_320.png", "currentPrice": "11.5", "originalPrice": "11.5", "canWithOrder": false },
+        "3001": { "name": "巨无霸三件套", "image": "https://menu-img.mcd.cn/pcm/prod/menu/20260309/product/MS_3001_320.png", "currentPrice": "38", "originalPrice": "38", "canWithOrder": false },
+        "3002": { "name": "麦辣鸡腿堡三件套", "image": "https://menu-img.mcd.cn/pcm/prod/menu/20260309/product/MS_3002_320.png", "currentPrice": "35.5", "originalPrice": "35.5", "canWithOrder": false }
+      }
     }
   },
   "campaign-calendar": "### 当前时间：2026-10-10 09:30:00 ### 活动列表： #### 10月9日 往期回顾\n- **活动标题**：麦门程序员节预热：1024 神秘代码等你破译\n **活动内容介绍**：👨‍💻 程序员节临近，麦门限时开启代码主题福利，10 月 24 日当天凭神秘代码享专属优惠，先破译先得！ #### 10月10日 今日\n- **活动标题**：麦麦会员日：今日积分双倍到账\n **活动内容介绍**：🎉 每月 10 日会员日，今日下单积分双倍累计，麦麦商城部分商品积分价 8 折，记得先领券再下单！ #### 10月11日 即将开始\n- **活动标题**：秋季限定：热奶茶三兄弟上新\n **活动内容介绍**：🍂 深秋限定热饮上新，焦糖玛奇朵奶茶、海盐芝士奶茶、桂花乌龙奶茶，买二赠一，暖手暖胃。"

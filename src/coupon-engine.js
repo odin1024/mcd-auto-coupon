@@ -141,6 +141,95 @@ function estimateSavings(coupons) {
   return count > 0 ? { count, total: Math.round(total * 100) / 100 } : null;
 }
 
+/**
+ * 提取单张券的"价值"（元）。
+ * 两种形态：
+ *  - 立减券："立减3元" → 价值 3（用这张券省 3 元）
+ *  - 用券价券："¥9.9 (用券价格)" → 价值 = 面值（券本身就是折扣凭证，按面值计入资产）
+ *  - 其他无法量化的券 → null（不虚报）
+ * @returns {number|null}
+ */
+function extractCouponValue(coupon) {
+  if (!coupon) return null;
+  const text = `${coupon.benefit || ''} ${coupon.title || ''}`;
+  const cut = text.match(/(?:立减|省|优惠|直减)\s*(\d+(?:\.\d+)?)\s*元/);
+  if (cut) return Math.round(parseFloat(cut[1]) * 100) / 100;
+  const face = text.match(/¥\s*(\d+(?:\.\d+)?)\s*(?:\(|（)?\s*用券价/);
+  if (face) return Math.round(parseFloat(face[1]) * 100) / 100;
+  const face2 = text.match(/用券价\s*[:：]?\s*¥?\s*(\d+(?:\.\d+)?)/);
+  if (face2) return Math.round(parseFloat(face2[1]) * 100) / 100;
+  const plain = text.match(/¥\s*(\d+(?:\.\d+)?)/);
+  if (plain) return Math.round(parseFloat(plain[1]) * 100) / 100;
+  return null;
+}
+
+/**
+ * 从"有效期"字段解析最后到期日，返回 {expiry: Date|null, leftDays: number|null}
+ * leftDays 语义：>=0 剩余天数；<0 已过期；null 无法判断
+ */
+function couponExpiry(coupon, now = new Date()) {
+  const validDate = coupon && coupon.validDate;
+  if (!validDate) return { expiry: null, leftDays: null };
+  const m = validDate.match(/(\d{4})-(\d{1,2})-(\d{1,2})/g);
+  if (!m) return { expiry: null, leftDays: null };
+  const last = m[m.length - 1].match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+  const expiry = new Date(Number(last[1]), Number(last[2]) - 1, Number(last[3]));
+  if (isNaN(expiry.getTime())) return { expiry: null, leftDays: null };
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const leftDays = Math.round((expiry - today) / 86400000);
+  return { expiry, leftDays };
+}
+
+/**
+ * 构建"券资产金额化驾驶舱"数据。
+ * @param {Object} myCoupons parseMyCoupons 结果
+ * @param {Object} account   query-my-account 的 data
+ * @returns {Object} 资产汇总（所有金额均为"诚实口径"，无法量化的不计入）
+ */
+function buildPortfolio(myCoupons, account, now = new Date()) {
+  const coupons = (myCoupons && Array.isArray(myCoupons.coupons)) ? myCoupons.coupons : [];
+  let faceTotal = 0;       // 券面值合计（可量化部分）
+  let valuedCount = 0;     // 可量化的券数
+  let expiringLoss = 0;    // 即将到期（≤3天且未过期）券的价值 = 沉默成本
+  let expiringCount = 0;
+  let expiredLoss = 0;     // 已过期券的价值 = 已损失
+  let expiredCount = 0;
+
+  for (const c of coupons) {
+    const value = extractCouponValue(c);
+    const { leftDays } = couponExpiry(c, now);
+    if (value != null) {
+      faceTotal += value;
+      valuedCount += 1;
+      if (leftDays != null && leftDays < 0) {
+        expiredLoss += value;
+        expiredCount += 1;
+      } else if (leftDays != null && leftDays <= 3) {
+        expiringLoss += value;
+        expiringCount += 1;
+      }
+    }
+  }
+
+  const point = account
+    ? {
+        available: Number(account.availablePoint) || 0,
+        accumulative: Number(account.accumulativePoint) || 0,
+        frozen: Number(account.frozenPoint) || 0,
+        expireThisMonth: Number(account.currentMouthExpirePoint) || 0,
+        currency: account.currency || '麦当劳积分',
+      }
+    : null;
+
+  return {
+    coupons: { count: (myCoupons && myCoupons.count) || 0, valuedCount, faceTotal: Math.round(faceTotal * 100) / 100 },
+    expiring: { count: expiringCount, loss: Math.round(expiringLoss * 100) / 100 },
+    expired: { count: expiredCount, loss: Math.round(expiredLoss * 100) / 100 },
+    point,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
 /** 解析活动日历 Markdown 文本 → [{ dateLabel, status, title, content, image }] */
 function parseCampaignCalendar(text) {
   if (typeof text !== 'string') return [];
@@ -210,6 +299,9 @@ module.exports = {
   parseMyCoupons,
   parseCampaignCalendar,
   estimateSavings,
+  extractCouponValue,
+  couponExpiry,
+  buildPortfolio,
   buildDashboard,
   clean,
 };

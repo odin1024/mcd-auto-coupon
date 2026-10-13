@@ -1,6 +1,6 @@
 /* ============================================================
-   麦门券官 — 移动端优先 · 桌面三栏 · 深色金融风 · 零外部依赖
-   升级版：券面化卡片 / 到期警示 / 积分高亮 / 活动分组 / 省钱横幅
+   麦门券官 V2.0 — 移动端优先 · 桌面三栏 · 深色金融风 · 零外部依赖
+   V2：券资产驾驶舱 / 智能用券决策 / 省钱战报长图
    ============================================================ */
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -185,6 +185,135 @@ html, body {
 
 .footer { text-align: center; font-size: 11px; color: #5c645e; margin-top: 26px; line-height: 1.8; }
 
+/* ============================================================
+   V2.0 — 券资产驾驶舱
+   ============================================================ */
+.dashboard { margin-top: 6px; }
+.dash-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px; }
+.dash-title { font-size: 16px; font-weight: 800; color: var(--text); letter-spacing: 1px; }
+.dash-sub { font-size: 12px; color: var(--muted); }
+.dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.dash-card {
+  background: linear-gradient(160deg, var(--panel), #181d25);
+  border: 1px solid var(--line); border-radius: 14px;
+  padding: 13px 14px; position: relative; overflow: hidden;
+  min-width: 0;
+}
+.dash-card::before {
+  content: ""; position: absolute; inset: 0; opacity: .08; pointer-events: none;
+  background: radial-gradient(120px 60px at 90% 0%, var(--gold), transparent 75%);
+}
+.dash-label { font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: .5px; }
+.dash-value { font-size: 26px; font-weight: 900; color: var(--gold); line-height: 1.25; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dash-note { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+.dash-warn { border-color: rgba(255, 107, 94, .4); }
+.dash-warn::before { background: radial-gradient(120px 60px at 90% 0%, var(--danger), transparent 75%); }
+.dash-warn .dash-value { color: var(--danger); }
+.dash-ok { border-color: rgba(127, 224, 163, .3); }
+.dash-ok::before { background: radial-gradient(120px 60px at 90% 0%, var(--ok), transparent 75%); }
+.dash-ok .dash-value { color: var(--ok); }
+.dash-danger { color: var(--danger); font-weight: 700; }
+
+/* V2 券卡「怎么用最值」按钮 */
+.panel-hint { font-size: 11px; color: var(--muted); font-weight: 400; }
+.c-adv { margin-top: 2px; }
+.adv-btn {
+  border: 1px solid rgba(255, 199, 44, .45); background: rgba(255, 199, 44, .12);
+  color: var(--gold); font-size: 12px; font-weight: 700;
+  padding: 6px 12px; border-radius: 20px; cursor: pointer;
+  transition: background .15s ease, transform .1s ease;
+}
+.adv-btn:hover { background: rgba(255, 199, 44, .24); }
+.adv-btn:active { transform: scale(.96); }
+
+/* ============================================================
+   V2.0 — 弹层（用券决策 / 战报）
+   ============================================================ */
+.modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: flex-end; justify-content: center; }
+.modal[hidden] { display: none; }
+.modal-mask { position: absolute; inset: 0; background: rgba(8, 10, 14, .66); backdrop-filter: blur(3px); }
+.modal-card {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 620px;
+  max-height: 84vh; overflow-y: auto;
+  background: linear-gradient(180deg, #1b2029, #151a22);
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-bottom: none; border-radius: 22px 22px 0 0;
+  padding: 22px 18px calc(20px + env(safe-area-inset-bottom));
+  animation: slideUp .28s ease both;
+}
+@media (min-width: 640px) {
+  .modal { align-items: center; }
+  .modal-card { border-radius: 22px; border-bottom: 1px solid rgba(255,255,255,.12); margin: 0 16px; }
+}
+body.modal-open { overflow: hidden; }
+.modal-close {
+  position: absolute; top: 12px; right: 14px;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: rgba(255, 255, 255, .08); border: 1px solid var(--line);
+  color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer;
+  z-index: 2;
+}
+.modal-close:hover { background: rgba(255, 255, 255, .14); color: var(--text); }
+.modal-title { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 14px; padding-right: 36px; }
+
+/* 用券决策内容 */
+.advisor-body { display: flex; flex-direction: column; gap: 12px; }
+.adv-coupon {
+  background: rgba(255, 199, 44, .08); border: 1px solid rgba(255, 199, 44, .3);
+  border-radius: 14px; padding: 13px 15px;
+}
+.adv-c-title { font-size: 15px; font-weight: 800; color: var(--text); line-height: 1.45; }
+.adv-c-value { font-size: 13px; color: var(--muted); margin-top: 5px; }
+.gold-text { color: var(--gold); }
+.adv-list { display: flex; flex-direction: column; gap: 9px; }
+.adv-item {
+  display: grid; grid-template-columns: 30px 1fr; gap: 10px;
+  background: rgba(255, 255, 255, .04); border: 1px solid var(--line);
+  border-radius: 14px; padding: 12px 13px; position: relative;
+}
+.adv-rank {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(255, 199, 44, .18); border: 1px solid rgba(255, 199, 44, .4);
+  color: var(--gold); font-size: 13px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.adv-info { min-width: 0; }
+.adv-name { font-size: 14px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.adv-cat { font-size: 10px; color: var(--muted); font-weight: 400; border: 1px solid var(--line); padding: 1px 7px; border-radius: 20px; }
+.rank-best {
+  font-size: 10px; font-weight: 800; color: #5e2800;
+  background: linear-gradient(135deg, var(--gold), #f2b900);
+  padding: 2px 8px; border-radius: 20px;
+}
+.adv-price-line { display: flex; align-items: baseline; gap: 6px; margin-top: 5px; flex-wrap: wrap; }
+.adv-old { font-size: 12px; color: var(--muted); text-decoration: line-through; }
+.adv-arrow { font-size: 12px; color: var(--muted); }
+.adv-pay { font-size: 18px; font-weight: 900; color: var(--gold); }
+.adv-pay.free { color: var(--ok); }
+.adv-saved { font-size: 12px; font-weight: 700; color: var(--ok); }
+.adv-verified { font-size: 11px; color: var(--ok); margin-top: 6px; font-weight: 600; }
+.adv-verified.warn { color: var(--warn); }
+.adv-tip { font-size: 11px; color: var(--muted); line-height: 1.7; padding: 2px 4px; }
+
+/* 战报 */
+.report-card .modal-title { text-align: center; }
+.report-canvas-wrap { border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: #0e1117; }
+#report-canvas { display: block; width: 100%; height: auto; }
+.report-actions { margin-top: 14px; text-align: center; }
+.report-tip { text-align: center; font-size: 11px; color: var(--muted); margin-top: 8px; }
+
+/* 按钮行 */
+.actions-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold), #f2b900);
+  color: #5e2800; font-weight: 800; padding: 12px 26px; font-size: 15px;
+  box-shadow: 0 8px 22px rgba(255, 199, 44, .28);
+}
+.btn-gold:hover { filter: brightness(1.06); }
+
+@keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+
 @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 /* ============================================================
@@ -197,6 +326,10 @@ html, body {
 
   .btn-claim { max-width: 520px; font-size: 20px; padding: 22px 18px; }
 
+  /* V2 驾驶舱：桌面 4 列 */
+  .dash-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .dash-value { font-size: 28px; }
+
   /* 券列表双列 */
   .coupon-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
@@ -206,4 +339,5 @@ html, body {
   .activity-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
   /* 桌面券卡片金额列恢复更宽 */
   .coupon-item { grid-template-columns: 84px 1fr; }
+  .modal-card { max-height: 82vh; }
 }

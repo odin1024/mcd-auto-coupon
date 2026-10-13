@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="description" content="麦门券官——一键领光麦当劳优惠券，券包与积分资产一目了然。基于麦当劳 MCP 真实数据。" />
-  <meta property="og:title" content="麦门券官 · 一键领券省钱管家" />
-  <meta property="og:description" content="一键领光可领优惠券，券包/积分/活动资产看板，省钱成绩单看得见。" />
-  <title>麦门券官 · 一键领券省钱管家</title>
+  <meta name="description" content="麦门券官 V2.0——券资产智能管家：券面值合计、即将过期沉默成本提醒、智能用券决策（官方真实计价）、一键生成省钱战报分享长图。基于麦当劳 MCP 真实数据。" />
+  <meta property="og:title" content="麦门券官 V2 · 券资产智能管家" />
+  <meta property="og:description" content="一键领券 + 券资产驾驶舱 + 智能用券决策 + 省钱战报长图。你手里的券，怎么用最值。" />
+  <title>麦门券官 V2 · 券资产智能管家</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='10' width='52' height='44' rx='10' fill='%23FFC72C'/%3E%3Ctext x='32' y='46' font-size='34' font-weight='900' text-anchor='middle' fill='%23DA291C' font-family='Arial'%E5%88%B8%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -16,12 +16,42 @@
       <div class="brand">
         <span class="brand-m">M</span>
         <span class="brand-name">麦门券官</span>
-        <span class="brand-tag">AUTO-COUPON</span>
+        <span class="brand-tag">V2 · AUTO-COUPON</span>
       </div>
       <span id="mode-badge" class="mode-badge" hidden></span>
     </header>
 
     <main>
+      <!-- 券资产驾驶舱 -->
+      <section class="dashboard">
+        <div class="dash-head">
+          <span class="dash-title">券资产驾驶舱</span>
+          <span class="dash-sub">你手里的券，值多少钱 · 还能省多少</span>
+        </div>
+        <div class="dash-grid">
+          <div class="dash-card" id="dash-face">
+            <div class="dash-label">券面值合计</div>
+            <div class="dash-value" id="dash-face-value">--</div>
+            <div class="dash-note" id="dash-face-note">可量化券 N 张</div>
+          </div>
+          <div class="dash-card" id="dash-point">
+            <div class="dash-label">可用积分</div>
+            <div class="dash-value" id="dash-point-value">--</div>
+            <div class="dash-note" id="dash-point-note">本月到期 --</div>
+          </div>
+          <div class="dash-card dash-warn" id="dash-loss">
+            <div class="dash-label">即将过期 · 沉默成本</div>
+            <div class="dash-value" id="dash-loss-value">¥0</div>
+            <div class="dash-note" id="dash-loss-note">≤3 天内到期，再不用就白扔</div>
+          </div>
+          <div class="dash-card" id="dash-save">
+            <div class="dash-label">预计可省</div>
+            <div class="dash-value" id="dash-save-value">--</div>
+            <div class="dash-note">立减券口径 · 诚实统计</div>
+          </div>
+        </div>
+      </section>
+
       <!-- 领券主操作 -->
       <section class="claim-hero">
         <button id="btn-claim" class="btn btn-claim">
@@ -41,7 +71,7 @@
       <!-- 数据看板 -->
       <section class="grid">
         <div class="panel">
-          <div class="panel-title">我的优惠券</div>
+          <div class="panel-title">我的优惠券 <span class="panel-hint">每张券都能「怎么用最值」</span></div>
           <div id="coupon-summary" class="big-number">--</div>
           <div id="coupon-savings" class="savings-line"></div>
           <div id="coupon-list" class="coupon-list"></div>
@@ -59,16 +89,45 @@
         </div>
       </section>
 
-      <div class="actions">
+      <div class="actions actions-row">
+        <button id="btn-report" class="btn btn-gold">📊 生成省钱战报</button>
         <button id="btn-refresh" class="btn btn-ghost">刷新看板</button>
       </div>
     </main>
 
     <footer class="footer">
-      麦门券官 · 麦当劳程序员创意开发大赛参赛作品（非麦当劳官方产品）<br />
-      一键领券将调用麦当劳 MCP 的 auto-bind-coupons 能力
+      麦门券官 V2.0 · 麦当劳程序员创意开发大赛参赛作品（非麦当劳官方产品）<br />
+      数据来自麦当劳 MCP：查券 / 领券 / 积分 / 活动 / 菜单 / 官方计价
     </footer>
   </div>
+
+  <!-- 智能用券决策弹层 -->
+  <div id="advisor-modal" class="modal" hidden>
+    <div class="modal-mask"></div>
+    <div class="modal-card">
+      <button class="modal-close" id="advisor-close">×</button>
+      <div class="modal-title">这张券怎么用最值？</div>
+      <div id="advisor-body" class="advisor-body"></div>
+    </div>
+  </div>
+
+  <!-- 省钱战报预览弹层 -->
+  <div id="report-modal" class="modal" hidden>
+    <div class="modal-mask"></div>
+    <div class="modal-card report-card">
+      <button class="modal-close" id="report-close">×</button>
+      <div class="modal-title">麦门省钱战报</div>
+      <div class="report-canvas-wrap">
+        <canvas id="report-canvas" width="750" height="1200"></canvas>
+      </div>
+      <div class="report-actions">
+        <button id="report-download" class="btn btn-gold">💾 保存战报图片</button>
+      </div>
+      <p class="report-tip">长按图片可保存 · 分享到朋友圈/小红书，一起做麦门省钱人</p>
+    </div>
+  </div>
+
+  <script src="report.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

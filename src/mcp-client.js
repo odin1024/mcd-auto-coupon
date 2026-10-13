@@ -155,6 +155,11 @@ class McpClient {
       let text;
       if (preset === undefined) {
         text = JSON.stringify({ success: true, code: 200, message: 'Mock 无数据', data: null });
+      } else if (typeof preset === 'function') {
+        // 支持函数型预设：接收工具入参动态生成返回（如 mock 计价按 items 计算）
+        const args = (payload.params && payload.params.arguments) || {};
+        const result = preset.call(this, args);
+        text = typeof result === 'string' ? result : JSON.stringify(result);
       } else if (typeof preset === 'string') {
         text = preset;
       } else {
