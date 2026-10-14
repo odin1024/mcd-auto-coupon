@@ -390,4 +390,19 @@ server.listen(PORT, () => {
   console.log('  配置真实 Token: export MCD_MCP_TOKEN=<你的Token>');
   console.log('  V2.0 新增: 券资产驾驶舱 / 智能用券决策 / 省钱战报');
   console.log('========================================');
+
+  // 启动后台预热：先拉一次菜单与券数据进缓存，用户首次点击"怎么用最值"即可秒出建议
+  // （query-meals 全量菜单官方响应可达 20~40 秒，预热避免首个用户等太久）
+  if (!client.isMock) {
+    getMenu().then((meals) => {
+      console.log(`[mcd-auto-coupon] 菜单预热完成: ${meals.length} 个餐品`);
+    }).catch((err) => {
+      console.warn('[mcd-auto-coupon] 菜单预热失败（稍后点击时会自动重试）:', err.message);
+    });
+    getMyCoupons().then((coupons) => {
+      console.log(`[mcd-auto-coupon] 券数据预热完成: ${coupons.count} 张券`);
+    }).catch((err) => {
+      console.warn('[mcd-auto-coupon] 券数据预热失败（稍后访问时会自动重试）:', err.message);
+    });
+  }
 });

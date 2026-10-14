@@ -238,7 +238,7 @@ const advisorModal = $('#advisor-modal');
 const advisorBody = $('#advisor-body');
 
 async function openAdvisor(couponIndex) {
-  advisorBody.innerHTML = '<div class="empty-tip">正在查询菜单与官方计价…</div>';
+  advisorBody.innerHTML = '<div class="empty-tip">正在查询官方菜单并逐项真实计价，首次约需 10~30 秒，请稍候…</div>';
   advisorModal.hidden = false;
   document.body.classList.add('modal-open');
   try {
@@ -251,7 +251,11 @@ async function openAdvisor(couponIndex) {
     if (!d.ok) throw new Error(d.error || '查询失败');
     renderAdvisor(d);
   } catch (err) {
-    advisorBody.innerHTML = `<div class="empty-tip">查询失败：${escapeHtml(err.message)}</div>`;
+    advisorBody.innerHTML = `
+      <div class="empty-tip">查询失败：${escapeHtml(err.message)}</div>
+      <div class="adv-retry-wrap">
+        <button class="btn-adv-retry" onclick="openAdvisor(${couponIndex})">重试</button>
+      </div>`;
   }
 }
 

@@ -144,6 +144,18 @@ html, body {
 .coupon-item.state-expired { opacity: .55; filter: grayscale(.5); }
 .coupon-item.state-expired .expire-flag { color: var(--muted); }
 .empty-tip { font-size: 13px; color: var(--muted); padding: 8px 0; }
+.adv-retry-wrap { margin-top: 10px; text-align: center; }
+.btn-adv-retry {
+  background: linear-gradient(135deg, #FFC72C, #f5a623);
+  color: #1a1a1a;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 24px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-adv-retry:active { transform: scale(0.96); }
 
 /* ---------- 领券结果 ---------- */
 .claim-result { animation: fadeUp .3s ease both; }

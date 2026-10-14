@@ -32,7 +32,8 @@ class McpClient {
     this.token = opts.token || process.env.MCD_MCP_TOKEN || '';
     this.url = opts.url || process.env.MCD_MCP_URL || DEFAULT_MCP_URL;
     this.minIntervalMs = opts.minIntervalMs ?? 120;
-    this.timeoutMs = opts.timeoutMs ?? 20000;
+    // 慢接口（如 query-meals 全量菜单）官方响应可达 20~40 秒，超时放宽到 45 秒
+    this.timeoutMs = opts.timeoutMs ?? 45000;
     this.logger = opts.logger || console;
     this.mockData = opts.mockData || {};
     this.mock = opts.mock !== undefined
@@ -74,6 +75,13 @@ class McpClient {
       });
     } catch (err) {
       clearTimeout(timer);
+      // 网络错误/超时：瞬时失败，允许退避重试
+      if (retryLeft > 0) {
+        const delay = 600 * (3 - retryLeft);
+        this.logger.warn(`[mcp] 网络请求失败(${err.message})，${delay}ms 后重试`);
+        await new Promise((r) => setTimeout(r, delay));
+        return this._post(payload, retryLeft - 1, opts);
+      }
       throw new MCPClientError(`网络请求失败: ${err.message}`, 'NETWORK');
     }
     clearTimeout(timer);
